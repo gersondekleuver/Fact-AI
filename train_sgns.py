@@ -6,8 +6,8 @@ from paths import corpus_path_dict, embed_folders
 
 
 def train_w2v(filename, size=300, workers=48, window=5, min_count=5, num_iter=5):
-    return Word2Vec(corpus_file=filename, size=size, workers=workers,
-                    window=window, min_count=min_count, iter=num_iter)
+    return Word2Vec(corpus_file=filename, vector_size=size, workers=workers,
+                    window=window, min_count=min_count, epochs=num_iter)
 
 
 def main():
