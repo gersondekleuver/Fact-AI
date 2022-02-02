@@ -13,29 +13,37 @@ import utils
 
 def batch_db_wa_bias(target_words, gender_base_pairs, embed_model):
     # gender base pairs embeddings
+
     male_embeds, female_embeds = zip(*[[embed_model[male_word], embed_model[female_word]]
                                        for [male_word, female_word] in gender_base_pairs])
-    male_embeds = np.array([utils.normalize_embed(male_embed) for male_embed in male_embeds])
-    female_embeds = np.array([utils.normalize_embed(female_embed) for female_embed in female_embeds])
+    male_embeds = np.array([utils.normalize_embed(male_embed)
+                            for male_embed in male_embeds])
+    female_embeds = np.array([utils.normalize_embed(female_embed)
+                              for female_embed in female_embeds])
     gender_base_pairs_embeds = male_embeds - female_embeds  # n_pairs, embed_dim
     # target words embeddings
     target_embeds = np.array([utils.normalize_embed(embed_model[target_word])
                               for target_word in target_words])  # n_target_words, embed_dim
     # bias scores
-    bias_scores = np.matmul(target_embeds, gender_base_pairs_embeds.transpose())  # n_target_words, n_pairs
+    # n_target_words, n_pairs
+    bias_scores = np.matmul(
+        target_embeds, gender_base_pairs_embeds.transpose())
     return bias_scores
 
 
 def batch_ripa_bias(target_words, gender_base_pairs, embed_model):
     # gender base pairs embeddings
     gender_base_pairs_embeds = np.array([
-        utils.normalize_embed(embed_model[male_word] - embed_model[female_word])
+        utils.normalize_embed(
+            embed_model[male_word] - embed_model[female_word])
         for [male_word, female_word] in gender_base_pairs])  # n_pairs, embed_dim
     # target words embeddings
     target_embeds = np.array([utils.normalize_embed(embed_model[target_word])
                               for target_word in target_words])  # n_target_words, embed_dim
     # bias scores
-    bias_scores = np.matmul(target_embeds, gender_base_pairs_embeds.transpose())  # n_target_words, n_pairs
+    # n_target_words, n_pairs
+    bias_scores = np.matmul(
+        target_embeds, gender_base_pairs_embeds.transpose())
     return bias_scores
 
 
@@ -67,10 +75,15 @@ def k_nearest_words(query_words, embed_model, k=100, return_query=False):
 
 def batch_nbm_bias(target_words, gender_base_pairs, embed_model, k=100):
     gender_base_pairs_embeds = np.array([
-        utils.normalize_embed(embed_model[male_word]) - utils.normalize_embed(embed_model[female_word])
+        utils.normalize_embed(
+            embed_model[male_word]) - utils.normalize_embed(embed_model[female_word])
         for [male_word, female_word] in gender_base_pairs])  # n_pairs, embed_dim
-    nearest_neighbors_embed = k_nearest_words(target_words, embed_model, k=k)  # n_target_words, k, embed_dim
-    db_wa_bias_scores = np.matmul(nearest_neighbors_embed, gender_base_pairs_embeds.T)  # n_target_words, k, n_pairs
+    nearest_neighbors_embed = k_nearest_words(
+        target_words, embed_model, k=k)  # n_target_words, k, embed_dim
+    # n_target_words, k, n_pairs
+    db_wa_bias_scores = np.matmul(
+        nearest_neighbors_embed, gender_base_pairs_embeds.T)
     bias_scores = np.where(db_wa_bias_scores >= 0, 1, -1)
-    bias_scores = np.sum(bias_scores, axis=1) / bias_scores.shape[1]  # n_target_words, n_pairs
+    bias_scores = np.sum(bias_scores, axis=1) / \
+        bias_scores.shape[1]  # n_target_words, n_pairs
     return bias_scores

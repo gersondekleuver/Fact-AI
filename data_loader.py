@@ -53,7 +53,8 @@ def load_gensim_sgns(embed_path) -> Dict[str, np.array]:
 
     artificial_tokens = ['<unk>', '<raw_unk>']
     embed_model = Word2Vec.load(embed_path).wv
-    embed_model = {word: embed_model[word] for word in embed_model.vocab if word not in artificial_tokens}
+    embed_model = {word: embed_model[word] for word in embed_model.key_to_index.keys(
+    ) if word not in artificial_tokens}
     return embed_model
 
 
@@ -141,10 +142,12 @@ def load_vocab(filename):
     with open(filename) as fin:
         for line in fin:
             try:
-                word, _ = line.strip().split()
+
+                word = line.split()
             except ValueError:  # ignore blanks
                 continue
-            vocab.append(word)
+
+            vocab.append(word[0])
     return set(vocab)
 
 
